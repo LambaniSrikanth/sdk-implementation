@@ -28,8 +28,8 @@ const getProfileDetailsByAccessId = async (req, res) => {
             res.status(400).json({ status: false, message: "some error had occured" });
         }
     } catch (error) {
-        console.log("error in getProfileDetailsByAccessId ", error);
         if (error && error.response && error.response.data) {
+            console.log("error in getProfileDetailsByAccessId ", error.response.data);
             res.status(500).json({ status: false, message: error.response.data.Description });
         } else {
             res.status(500).json({ status: false, message: "Internal Server Error" });
@@ -58,16 +58,41 @@ const InvalidateAccessToken = async (req, res) => {
             res.status(400).json({ status: false, message: "some error had occured" });
         }
     } catch (error) {
-        console.log("error in InvalidateAccessToken ", error);
         if (error && error.response && error.response.data) {
+            console.log("error in InvalidateAccessToken ", error.response.data);
             res.status(500).json({ status: false, message: error.response.data.Description });
         } else {
             res.status(500).json({ status: false, message: "Internal Server Error" });
         }
     }
 }
-
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const api_res = await axios.post(process.env.API_URL + process.env.LOGIN_API,
+            {
+                "email": email,
+                "password": password
+            },
+            {
+                params: {
+                    apikey: process.env.API_KEY,
+                }
+            })
+        if (api_res && api_res.data && api_res.data.access_token) {
+            res.status(200).json({ status: true, message: "Logged In successfully", access_token: api_res.data.access_token });
+        }
+    } catch (error) {
+        if (error && error.response && error.response.data) {
+            console.log("errro in login ", error.response.data);
+            res.status(500).json({ status: false, message: error.response.data.Description });
+        } else {
+            res.status(500).json({ status: false, message: "Internal Server Error" });
+        }
+    }
+}
 module.exports = {
     getProfileDetailsByAccessId,
-    InvalidateAccessToken
+    InvalidateAccessToken,
+    login
 }

@@ -10,10 +10,8 @@ export default function Profile() {
 
     useEffect(() => {
         const accessToken = localStorage.getItem("access_token");
-        console.log("profile token is ", accessToken)
-        // ❌ No token → redirect
+
         if (!accessToken) {
-            console.log("No access token found")
             navigate("/");
             return;
         }
@@ -32,32 +30,26 @@ export default function Profile() {
 
                 const data = await res.json();
 
-                // ❌ invalid token
                 if (res.status !== 200 || !data.status) {
-                    handleLogout();
+                    logout(); // invalid token
                     return;
                 }
 
-                if (data.status && data.data) {
-                    const apiUser = data.data;
+                const apiUser = data.data;
 
-                    // ✅ Map API fields → frontend fields
-                    const formattedUser = {
-                        fullName: apiUser.FullName,
-                        email: apiUser.email || apiUser.verifiedEmail,
-                        mobile: apiUser.mobile_number,
-                        uid: apiUser.Uid,
-                    };
+                const formattedUser = {
+                    fullName: apiUser.FullName,
+                    email: apiUser.email || apiUser.verifiedEmail,
+                    mobile: apiUser.mobile_number,
+                    uid: apiUser.Uid,
+                };
 
-                    // ✅ Save in localStorage
-                    localStorage.setItem("user", JSON.stringify(formattedUser));
+                localStorage.setItem("user", JSON.stringify(formattedUser));
+                setUser(formattedUser);
 
-                    // ✅ Set state
-                    setUser(formattedUser);
-                }
             } catch (err) {
                 console.error(err);
-                handleLogout();
+                logout();
             } finally {
                 setLoading(false);
             }
@@ -66,15 +58,13 @@ export default function Profile() {
         fetchProfile();
     }, [navigate]);
 
-    // 🔥 Logout
-    const handleLogout = () => {
+    // ✅ Clean Logout
+    const logout = async () => {
         const accessToken = localStorage.getItem("access_token");
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        localStorage.removeItem("user");
-        const InvalidateToken = async () => {
-            try {
-                const res = await fetch(
+
+        try {
+            if (accessToken) {
+                await fetch(
                     `${import.meta.env.VITE_BACKENDURL}/api/invalidateAccessToken`,
                     {
                         method: "GET",
@@ -83,39 +73,16 @@ export default function Profile() {
                         },
                     }
                 );
-                const data = await res.json();
-
-                // ❌ invalid token
-                if (res.status !== 200 || !data.status) {
-                    handleLogout();
-                    return;
-                }
-
-                if (data.status && data.data) {
-                    const apiUser = data.data;
-
-                    // ✅ Map API fields → frontend fields
-                    const formattedUser = {
-                        fullName: apiUser.FullName,
-                        email: apiUser.email || apiUser.verifiedEmail,
-                        mobile: apiUser.mobile_number,
-                        uid: apiUser.Uid,
-                    };
-
-                    // ✅ Save in localStorage
-                    localStorage.setItem("user", JSON.stringify(formattedUser));
-
-                    // ✅ Set state
-                    setUser(formattedUser);
-                }
-            } catch (err) {
-                console.error(err);
-                handleLogout();
-            } finally {
-                setLoading(false);
             }
-        };
-        InvalidateToken();
+        } catch (err) {
+            console.error("Logout API failed:", err);
+        }
+
+        // ✅ Clear everything AFTER API call
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user");
+
         navigate("/");
     };
 
@@ -132,10 +99,8 @@ export default function Profile() {
     return (
         <div className="container">
             <div className="card">
-                {/* ✅ Welcome Message */}
                 <h2>Hi {user?.fullName || "User"} 👋</h2>
 
-                {/* Profile Details */}
                 <div className="profile-field">
                     <label>Full Name</label>
                     <p>{user?.fullName || "N/A"}</p>
@@ -151,8 +116,7 @@ export default function Profile() {
                     <p>{user?.mobile || "N/A"}</p>
                 </div>
 
-                {/* Logout */}
-                <button className="primary logout" onClick={handleLogout}>
+                <button className="primary logout" onClick={logout}>
                     Logout
                 </button>
             </div>

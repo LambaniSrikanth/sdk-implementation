@@ -6,7 +6,6 @@ dotenv.config({ path: "../../.env" });
 
 const register = async (req, res) => {
     try {
-        console.log("payload ", req.body)
         const { email, password, mobile, fullName, } = req.body;
         const api_res = await axios.post(process.env.API_URL + process.env.ACCOUNT_CREATE,
             {
@@ -37,7 +36,6 @@ const register = async (req, res) => {
                     apisecret: process.env.API_SECRET
                 }
             })
-        console.log("api_res is ", api_res.data)
         if (api_res && api_res.data.ID) {
             await emailverificationMail(email)
             res.status(200).json({ status: true, message: "Registered successfully" });
@@ -69,7 +67,6 @@ const forgotPassword = async (req, res) => {
                     resetPasswordUrl: "http://localhost:5174/password-change"
                 }
             })
-        console.log("api_res is ", api_res.data)
         if (api_res && api_res.data.ForgotToken) {
             res.status(200).json({ status: true, message: "password reset link is sent to the mail" });
         } else {
@@ -156,13 +153,13 @@ const verifyEmailByToken = async (req, res) => {
                 }
             })
         if (api_res && api_res.data.Data && api_res.data.Data.access_token) {
-            res.status(200).json({ status: true, message: "Email verified", access_token: api_res.data.Data.access_token, refresh_token: api_res.data.Data.refresh_token });
+            res.status(200).json({ status: true, message: "Email verified", access_token: api_res.data.Data.access_token, refresh_token: api_res.data.Data.refresh_token, mobile_number: api_res.data.Data.Profile.PhoneId });
         } else {
             res.status(400).json({ status: false, message: "some erorr had occured" });
         }
     } catch (error) {
-        console.log("error in verifyEmailByToken ", error);
         if (error && error.response && error.response.data) {
+            console.log("error in verifyEmailByToken ", error.response.data);
             res.status(500).json({ status: false, message: error.response.data.Description });
         } else {
             res.status(500).json({ status: false, message: "Internal Server Error" });
@@ -170,10 +167,86 @@ const verifyEmailByToken = async (req, res) => {
 
     }
 }
+const asyncsendOTPForMobileVerification = async (mobile_number) => {
+    try {
+        const api_res = await axios.post(process.env.API_URL + process.env.PHONE_VERIFICATION_OTP_SEND,
+            {
+                "phone": mobile_number
+            },
+            {
+                params: {
+                    apikey: process.env.API_KEY
+                }
+            })
+        if (api_res && api_res.data.IsPosted) {
+            return { status: true, message: "OTP sent" }
+        } else {
+            return { status: false, message: "some erorr had occured" }
+        }
+    } catch (error) {
+        if (error && error.response && error.response.data) {
+            console.log("error in sendOTPForMobileVerification ", error.response.data);
+            return { status: false, message: error.response.data.Description }
+        } else {
+            return { status: false, message: "Internal Server Error" }
+        }
+    }
+}
+const verifyMobileByOTP = async (req, res) => {
+    try {
+        const mobile = req.query.mobile;
+        const otp = req.query.otp;
+        if (!mobile || !otp) {
+            return res.status(400).json({
+                status: false,
+                message: "mobile or otp is  missing",
+            });
+        }
+        const api_res = await axios.put(
+            process.env.API_URL + process.env.PHONE_VERFICATION_OTP_VALIDATION,
+            {
+                phone: mobile, // body data
+            },
+            {
+                params: {
+                    apikey: process.env.API_KEY,
+                    otp: otp
+                },
+            }
+        );
+        if (api_res && api_res.data.access_token) {
+            res.status(200).json({ status: true, message: "Mobile verified", access_token: api_res.data.access_token });
+        } else {
+            res.status(400).json({ status: false, message: "some erorr had occured" });
+        }
+    } catch (error) {
+        if (error && error.response && error.response.data) {
+            console.log("error in verifyEmailByToken ", error.response.data);
+            res.status(500).json({ status: false, message: error.response.data.Description });
+        } else {
+            res.status(500).json({ status: false, message: "Internal Server Error" });
+        }
+
+    }
+}
+const sendOTPForMobileVerification = async (req, res) => {
+    const mobile = req.query.mobile;
+    if (!mobile) {
+        return res.status(400).json({
+            status: false,
+            message: "mobile  missing",
+        });
+    } else {
+        let ress = await asyncsendOTPForMobileVerification(mobile)
+        return res.status(200).json(ress);
+    }
+}
 
 module.exports = {
     register,
     forgotPassword,
     forgotPasswordByToken,
-    verifyEmailByToken
+    verifyEmailByToken,
+    verifyMobileByOTP,
+    sendOTPForMobileVerification
 }

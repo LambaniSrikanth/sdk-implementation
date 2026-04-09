@@ -7,6 +7,7 @@ import PasswordChangedSuccess from "./PasswordChangedSuccess";
 import PasswordChangePage from "./PasswordChangePage";
 import VerifyEmail from "./verifyEmail";
 import Profile from "./Profile";
+import VerifyOTP from "./VerifyOTP";
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ function AuthPage() {
 
     try {
       if (view === "register") {
-        const res = await fetch(import.meta.env.VITE_BACKENDURL + import.meta.env.VITE_REGISTERAPI, {
+        const res = await fetch(`${import.meta.env.VITE_BACKENDURL}/api/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -92,7 +93,27 @@ function AuthPage() {
       }
 
       if (view === "login") {
-        navigate("/login-success");
+        const res = await fetch(`${import.meta.env.VITE_BACKENDURL}/api/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password
+          }),
+        });
+
+        const data = await res.json();
+        if (res.status === 200 && data.status === true) {
+          if (data.access_token) {
+            localStorage.setItem("access_token", data.access_token)
+          }
+          navigate("/profile");
+        } else {
+          // ❌ Show backend message
+          alert(data.message);
+        }
       }
 
       if (view === "forgot") {
@@ -248,6 +269,7 @@ export default function App() {
       <Route path="/password-change" element={<PasswordChangePage />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/verify" element={<VerifyOTP />} />
     </Routes>
   );
 }
