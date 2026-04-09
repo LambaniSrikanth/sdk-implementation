@@ -3,6 +3,10 @@ import { useState } from "react";
 import "./App.css";
 import LoginSuccess from "./LoginSuccess";
 import RegisterSuccess from "./RegisterSuccess";
+import PasswordChangedSuccess from "./PasswordChangedSuccess";
+import PasswordChangePage from "./PasswordChangePage";
+import VerifyEmail from "./verifyEmail";
+import Profile from "./Profile";
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -92,7 +96,25 @@ function AuthPage() {
       }
 
       if (view === "forgot") {
-        alert("Reset link sent!");
+        const res = await fetch(import.meta.env.VITE_BACKENDURL + "/api/forgot-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email
+          }),
+        });
+
+        const data = await res.json();
+
+
+        if (res.status === 200 && data.status === true) {
+          // navigate("/register-success");
+        } else {
+          // ❌ Show backend message
+          alert(data.message);
+        }
       }
     } catch (err: any) {
       alert(err.message); // you can improve UI later
@@ -222,6 +244,10 @@ export default function App() {
       <Route path="/" element={<AuthPage />} />
       <Route path="/login-success" element={<LoginSuccess />} />
       <Route path="/register-success" element={<RegisterSuccess />} />
+      <Route path="/password-changed" element={<PasswordChangedSuccess />} />
+      <Route path="/password-change" element={<PasswordChangePage />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/profile" element={<Profile />} />
     </Routes>
   );
 }
