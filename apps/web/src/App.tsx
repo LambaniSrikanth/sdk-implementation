@@ -1,5 +1,5 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./App.css";
 import LoginSuccess from "./LoginSuccess";
 import RegisterSuccess from "./RegisterSuccess";
@@ -23,6 +23,13 @@ function AuthPage() {
   const [errors, setErrors] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      navigate("/profile");
+    }
+  }, []);
 
   const changeView = (newView: "login" | "register" | "forgot") => {
     setView(newView);
