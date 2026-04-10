@@ -253,9 +253,9 @@ const verifyEmailOTPtoLogin = async (req, res) => {
                 },
             }
         );
-        // console.log("verifyEmailOtptoLogin response is ", api_res.data)
-        if (api_res && api_res.data.Data && api_res.data.Data.access_token) {
-            res.status(200).json({ status: true, message: "Email verified", access_token: api_res.data.Data.access_token, refresh_token: api_res.data.Data.refresh_token, mobile_number: api_res.data.Data.Profile.PhoneId });
+        console.log("verifyEmailOtptoLogin response is ", api_res.data)
+        if (api_res && api_res.data.access_token && api_res.data.refresh_token) {
+            res.status(200).json({ status: true, message: "Email MFA OTP is verified", access_token: api_res.data.access_token, refresh_token: api_res.data.refresh_token, mobile_number: api_res.data.Profile.PhoneId, email_id: email_id });
         } else {
             res.status(400).json({ status: false, message: "some erorr had occured" });
         }

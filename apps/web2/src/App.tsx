@@ -1,5 +1,5 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import "./App.css";
 import LoginSuccess from "./LoginSuccess";
 import RegisterSuccess from "./RegisterSuccess";
@@ -8,6 +8,7 @@ import PasswordChangePage from "./PasswordChangePage";
 import VerifyEmail from "./verifyEmail";
 import Profile from "./Profile";
 import VerifyOTP from "./VerifyOTP";
+import ResetPasswordLink from "./ResetPasswordLink";
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ function AuthPage() {
 
   const [errors, setErrors] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   const changeView = (newView: "login" | "register" | "forgot") => {
     setView(newView);
@@ -65,7 +67,8 @@ function AuthPage() {
   };
 
   const handleSubmit = async () => {
-    if (!validate() || isSubmitting) return;
+    if (!validate() || isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -131,7 +134,7 @@ function AuthPage() {
 
 
         if (res.status === 200 && data.status === true) {
-          // navigate("/register-success");
+          navigate("/password-reset");
         } else {
           // ❌ Show backend message
           alert(data.message);
@@ -140,6 +143,7 @@ function AuthPage() {
     } catch (err: any) {
       alert(err.message); // you can improve UI later
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };
@@ -272,6 +276,7 @@ export default function App() {
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/verify" element={<VerifyOTP />} />
+      <Route path="/password-reset" element={<ResetPasswordLink />} />
     </Routes>
   );
 }
