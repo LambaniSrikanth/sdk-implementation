@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "./App.css";
+import { getCookie, setCookie, deleteCookie } from "./cookieUtils";
 
 export default function Profile() {
     const navigate = useNavigate();
@@ -8,9 +9,29 @@ export default function Profile() {
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
+    const refreshAccessToken = async (): Promise<string | null> => {
+        const refreshToken = getCookie("refresh_token");
+        if (!refreshToken) return null;
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKENDURL}/api/refresh-token`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ refresh_token: refreshToken }),
+            });
+            const data = await res.json();
+            if (res.status === 200 && data.access_token) {
+                setCookie("access_token", data.access_token);
+                if (data.refresh_token) setCookie("refresh_token", data.refresh_token);
+                return data.access_token;
+            }
+        } catch (err) {
+            console.error("Token refresh failed:", err);
+        }
+        return null;
+    };
+
     useEffect(() => {
-        const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-        const accessToken = auth.access_token;
+        let accessToken = getCookie("access_token");
         if (!accessToken) {
             navigate("/");
             return;
@@ -18,33 +39,42 @@ export default function Profile() {
 
         const fetchProfile = async () => {
             try {
-                const res = await fetch(
+                let res = await fetch(
                     `${import.meta.env.VITE_BACKENDURL}/api/profile`,
                     {
                         method: "GET",
-                        headers: {
-                            Authorization: `Bearer ${accessToken}`,
-                        },
+                        headers: { Authorization: `Bearer ${accessToken}` },
                     }
                 );
+
+                // 🔄 Try refresh if access token expired
+                if (res.status === 401) {
+                    const newToken = await refreshAccessToken();
+                    if (!newToken) { logout(); return; }
+                    accessToken = newToken;
+                    res = await fetch(
+                        `${import.meta.env.VITE_BACKENDURL}/api/profile`,
+                        {
+                            method: "GET",
+                            headers: { Authorization: `Bearer ${accessToken}` },
+                        }
+                    );
+                }
 
                 const data = await res.json();
 
                 if (res.status !== 200 || !data.status) {
-                    logout(); // invalid token
+                    logout();
                     return;
                 }
 
                 const apiUser = data.data;
-
-                const formattedUser = {
+                setUser({
                     fullName: apiUser.FullName,
                     email: apiUser.email,
                     mobile: apiUser.mobile_number,
                     uid: apiUser.Uid,
-                };
-
-                setUser(formattedUser);
+                });
 
             } catch (err) {
                 console.error(err);
@@ -59,8 +89,7 @@ export default function Profile() {
 
     // ✅ Clean Logout
     const logout = async () => {
-        const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-        const accessToken = auth.access_token;
+        const accessToken = getCookie("access_token");
         try {
             if (accessToken) {
                 await fetch(
@@ -77,8 +106,10 @@ export default function Profile() {
             console.error("Logout API failed:", err);
         }
 
-        // ✅ Clear everything AFTER API call
-        localStorage.removeItem("auth");
+        // ✅ Clear tokens from cookies and user info from localStorage
+        deleteCookie("access_token");
+        deleteCookie("refresh_token");
+        localStorage.removeItem("user");
 
         navigate("/");
     };

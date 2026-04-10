@@ -1,6 +1,7 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import "./App.css";
+import { getCookie } from "./cookieUtils";
 import LoginSuccess from "./LoginSuccess";
 import RegisterSuccess from "./RegisterSuccess";
 import PasswordChangedSuccess from "./PasswordChangedSuccess";
@@ -25,8 +26,7 @@ function AuthPage() {
   const isSubmittingRef = useRef(false);
 
   useEffect(() => {
-    const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-    const token = auth.access_token;
+    const token = getCookie("access_token");
     if (token) {
       navigate("/profile");
     }

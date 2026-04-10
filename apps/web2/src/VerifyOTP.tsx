@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./App.css";
+import { getCookie, setCookie } from "./cookieUtils";
 
 export default function VerifyOTP() {
     const navigate = useNavigate();
@@ -22,8 +23,7 @@ export default function VerifyOTP() {
     // ✅ Protect route
     useEffect(() => {
         if (type != "otp_verification") {
-            const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-            const accessToken = auth.access_token;
+            const accessToken = getCookie("access_token");
             if (!accessToken || !type) {
                 navigate("/");
             }
@@ -70,8 +70,7 @@ export default function VerifyOTP() {
             return;
         }
 
-        const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-        const accessToken = auth.access_token;
+        const accessToken = getCookie("access_token");
         if (!type || !API_MAP[type]) {
             alert("Invalid type");
             navigate("/");
@@ -83,11 +82,10 @@ export default function VerifyOTP() {
         setLoading(true);
 
         try {
-            const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-            const mobile = auth.user?.mobile;
+            const mobile = JSON.parse(localStorage.getItem("user") || "{}").mobile || "";
             const queryParams = new URLSearchParams({
                 otp: enteredOtp,
-                mobile: mobile || "",
+                mobile,
                 mfa_token: mfa_token || "",
                 email_id: email_id || ""
             });
@@ -107,12 +105,12 @@ export default function VerifyOTP() {
             if (res.status === 200 && data.status === true) {
                 if (type == "otp_verification") {
                     if (data.access_token && data.refresh_token) {
-                        localStorage.setItem("auth", JSON.stringify({
-                            access_token: data.access_token,
-                            refresh_token: data.refresh_token,
-                            user: {
-                                mobile: mobile || ""
-                            }
+                        // 🔐 Store tokens in cookies (SSO)
+                        setCookie("access_token", data.access_token);
+                        setCookie("refresh_token", data.refresh_token);
+                        // 🧠 Store only user info in localStorage
+                        localStorage.setItem("user", JSON.stringify({
+                            mobile: data.mobile_number || ""
                         }));
                         navigate(apiConfig.redirect);
                     } else {
