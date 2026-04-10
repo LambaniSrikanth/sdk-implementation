@@ -39,9 +39,6 @@ export default function VerifyEmail() {
                     // console.log("API SUCCESS", data);
 
                     if (data.access_token && data.refresh_token && data.mobile_number) {
-                        // localStorage.setItem("access_token", data.access_token);
-                        // localStorage.setItem("refresh_token", data.refresh_token);
-                        // localStorage.setItem("mobile_number", data.mobile_number);
                         localStorage.setItem("auth", JSON.stringify({
                             access_token: data.access_token,
                             refresh_token: data.refresh_token,

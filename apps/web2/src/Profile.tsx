@@ -9,7 +9,6 @@ export default function Profile() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // const accessToken = localStorage.getItem("access_token");
         const auth = JSON.parse(localStorage.getItem("auth") || "{}");
         const accessToken = auth.access_token;
         if (!accessToken) {
@@ -45,7 +44,6 @@ export default function Profile() {
                     uid: apiUser.Uid,
                 };
 
-                // localStorage.setItem("user", JSON.stringify(formattedUser));
                 setUser(formattedUser);
 
             } catch (err) {
@@ -61,7 +59,6 @@ export default function Profile() {
 
     // ✅ Clean Logout
     const logout = async () => {
-        // const accessToken = localStorage.getItem("access_token");
         const auth = JSON.parse(localStorage.getItem("auth") || "{}");
         const accessToken = auth.access_token;
         try {

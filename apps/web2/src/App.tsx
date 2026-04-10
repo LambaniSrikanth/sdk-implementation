@@ -25,7 +25,6 @@ function AuthPage() {
   const isSubmittingRef = useRef(false);
 
   useEffect(() => {
-    // const token = localStorage.getItem("access_token");
     const auth = JSON.parse(localStorage.getItem("auth") || "{}");
     const token = auth.access_token;
     if (token) {

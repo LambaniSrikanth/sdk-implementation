@@ -22,7 +22,6 @@ export default function VerifyOTP() {
     // ✅ Protect route
     useEffect(() => {
         if (type != "otp_verification") {
-            // const accessToken = localStorage.getItem("access_token");
             const auth = JSON.parse(localStorage.getItem("auth") || "{}");
             const accessToken = auth.access_token;
             if (!accessToken || !type) {
@@ -71,7 +70,6 @@ export default function VerifyOTP() {
             return;
         }
 
-        // const accessToken = localStorage.getItem("access_token");
         const auth = JSON.parse(localStorage.getItem("auth") || "{}");
         const accessToken = auth.access_token;
         if (!type || !API_MAP[type]) {
@@ -85,7 +83,6 @@ export default function VerifyOTP() {
         setLoading(true);
 
         try {
-            // const mobile = localStorage.getItem("mobile_number");
             const auth = JSON.parse(localStorage.getItem("auth") || "{}");
             const mobile = auth.user?.mobile;
             const queryParams = new URLSearchParams({
@@ -110,8 +107,6 @@ export default function VerifyOTP() {
             if (res.status === 200 && data.status === true) {
                 if (type == "otp_verification") {
                     if (data.access_token && data.refresh_token) {
-                        // localStorage.setItem("access_token", data.access_token);
-                        // localStorage.setItem("refresh_token", data.refresh_token);
                         localStorage.setItem("auth", JSON.stringify({
                             access_token: data.access_token,
                             refresh_token: data.refresh_token,
