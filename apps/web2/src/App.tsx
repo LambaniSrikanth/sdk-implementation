@@ -111,7 +111,7 @@ function AuthPage() {
 
         const data = await res.json();
         if (res.status === 200 && data.status === true && data.SecondFactorAuthentication) {
-          console.log("LOGIN SUCESSSS")
+          // console.log("LOGIN SUCESSSS")
           navigate(`/verify?type=otp_verification&mfa_token=${data.SecondFactorAuthentication}&email_id=${email}`);
         } else {
           // ❌ Show backend message

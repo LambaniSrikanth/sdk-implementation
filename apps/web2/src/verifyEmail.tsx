@@ -36,7 +36,7 @@ export default function VerifyEmail() {
 
                 const data = await res.json();
                 if (res.status === 200 && data.status === true) {
-                    console.log("API SUCCESS", data);
+                    // console.log("API SUCCESS", data);
 
                     if (data.access_token && data.refresh_token && data.mobile_number) {
                         localStorage.setItem("access_token", data.access_token);

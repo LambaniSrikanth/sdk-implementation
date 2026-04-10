@@ -54,7 +54,7 @@ const register = async (req, res) => {
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
-        console.log("payload received is ", email)
+        // console.log("payload received is ", email)
         const api_res = await axios.post(process.env.API_URL + process.env.FORGOT_PASSWORD_TOKEN,
             {
                 "email": email
@@ -253,7 +253,7 @@ const verifyEmailOTPtoLogin = async (req, res) => {
                 },
             }
         );
-        console.log("verifyEmailOtptoLogin response is ", api_res.data)
+        // console.log("verifyEmailOtptoLogin response is ", api_res.data)
         if (api_res && api_res.data.access_token && api_res.data.refresh_token) {
             res.status(200).json({ status: true, message: "Email MFA OTP is verified", access_token: api_res.data.access_token, refresh_token: api_res.data.refresh_token, mobile_number: api_res.data.Profile.PhoneId, email_id: email_id });
         } else {
