@@ -9,8 +9,9 @@ export default function Profile() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const accessToken = localStorage.getItem("access_token");
-
+        // const accessToken = localStorage.getItem("access_token");
+        const auth = JSON.parse(localStorage.getItem("auth") || "{}");
+        const accessToken = auth.access_token;
         if (!accessToken) {
             navigate("/");
             return;
@@ -44,7 +45,7 @@ export default function Profile() {
                     uid: apiUser.Uid,
                 };
 
-                localStorage.setItem("user", JSON.stringify(formattedUser));
+                // localStorage.setItem("user", JSON.stringify(formattedUser));
                 setUser(formattedUser);
 
             } catch (err) {
@@ -60,8 +61,9 @@ export default function Profile() {
 
     // ✅ Clean Logout
     const logout = async () => {
-        const accessToken = localStorage.getItem("access_token");
-
+        // const accessToken = localStorage.getItem("access_token");
+        const auth = JSON.parse(localStorage.getItem("auth") || "{}");
+        const accessToken = auth.access_token;
         try {
             if (accessToken) {
                 await fetch(
@@ -82,6 +84,7 @@ export default function Profile() {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         localStorage.removeItem("user");
+        localStorage.removeItem("mobile_number");
 
         navigate("/");
     };
