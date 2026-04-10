@@ -103,7 +103,17 @@ export default function VerifyOTP() {
             const data = await res.json();
 
             if (res.status === 200 && data.status === true) {
-                navigate(apiConfig.redirect);
+                if (type == "otp_verification") {
+                    if (data.access_token && data.refresh_token) {
+                        localStorage.setItem("access_token", data.access_token);
+                        localStorage.setItem("refresh_token", data.refresh_token);
+                        navigate(apiConfig.redirect);
+                    } else {
+                        navigate("/");
+                    }
+                } else {
+                    navigate(apiConfig.redirect);
+                }
             } else {
                 alert("Invalid OTP ❌");
             }
