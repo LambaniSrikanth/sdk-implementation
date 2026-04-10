@@ -81,10 +81,7 @@ export default function Profile() {
         }
 
         // ✅ Clear everything AFTER API call
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
         localStorage.removeItem("user");
-        localStorage.removeItem("mobile_number");
 
         navigate("/");
     };
