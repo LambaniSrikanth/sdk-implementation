@@ -17,13 +17,15 @@ export default function VerifyOTP() {
         | "mobile_verification"
         | "otp_verification"
         | null;
-
+    const mfa_token = queryParams.get("mfa_token") as string | null;
+    const email_id = queryParams.get("email_id") as string | null;
     // ✅ Protect route
     useEffect(() => {
-        const accessToken = localStorage.getItem("access_token");
-
-        if (!accessToken || !type) {
-            navigate("/");
+        if (type != "otp_verification") {
+            const accessToken = localStorage.getItem("access_token");
+            if (!accessToken || !type) {
+                navigate("/");
+            }
         }
     }, [navigate, type]);
 
@@ -53,8 +55,8 @@ export default function VerifyOTP() {
             redirect: "/profile",
         },
         otp_verification: {
-            url: "/api/resetPassword",
-            redirect: "/password-changed",
+            url: "/api/verifyEmailOtpToLogin",
+            redirect: "/profile",
         },
     };
 
@@ -84,6 +86,8 @@ export default function VerifyOTP() {
             const queryParams = new URLSearchParams({
                 otp: enteredOtp,
                 mobile: mobile || "",
+                mfa_token: mfa_token || "",
+                email_id: email_id || ""
             });
 
             const res = await fetch(

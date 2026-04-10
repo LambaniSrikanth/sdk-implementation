@@ -20,6 +20,7 @@ function AuthPage() {
   const [mobile, setMobile] = useState("");
 
   const [errors, setErrors] = useState<any>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const changeView = (newView: "login" | "register" | "forgot") => {
     setView(newView);
@@ -64,7 +65,8 @@ function AuthPage() {
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+    if (!validate() || isSubmitting) return;
+    setIsSubmitting(true);
 
     try {
       if (view === "register") {
@@ -105,11 +107,9 @@ function AuthPage() {
         });
 
         const data = await res.json();
-        if (res.status === 200 && data.status === true) {
-          if (data.access_token) {
-            localStorage.setItem("access_token", data.access_token)
-          }
-          navigate("/profile");
+        if (res.status === 200 && data.status === true && data.SecondFactorAuthentication) {
+          console.log("LOGIN SUCESSSS")
+          navigate(`/verify?type=otp_verification&mfa_token=${data.SecondFactorAuthentication}&email_id=${email}`);
         } else {
           // ❌ Show backend message
           alert(data.message);
@@ -139,6 +139,8 @@ function AuthPage() {
       }
     } catch (err: any) {
       alert(err.message); // you can improve UI later
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -224,7 +226,7 @@ function AuthPage() {
           </>
         )}
 
-        <button className="primary" onClick={handleSubmit}>
+        <button className="primary" onClick={handleSubmit} disabled={isSubmitting}>
           {view === "login" && "Login"}
           {view === "register" && "Register"}
           {view === "forgot" && "Send Reset Link"}

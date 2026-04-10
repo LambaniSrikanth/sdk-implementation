@@ -39,7 +39,7 @@ export default function Profile() {
 
                 const formattedUser = {
                     fullName: apiUser.FullName,
-                    email: apiUser.email || apiUser.verifiedEmail,
+                    email: apiUser.email,
                     mobile: apiUser.mobile_number,
                     uid: apiUser.Uid,
                 };

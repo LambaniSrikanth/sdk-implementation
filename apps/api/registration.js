@@ -229,6 +229,46 @@ const verifyMobileByOTP = async (req, res) => {
 
     }
 }
+const verifyEmailOTPtoLogin = async (req, res) => {
+    try {
+        const mfa_token = req.query.mfa_token;
+        const otp = req.query.otp;
+        const email_id = req.query.email_id;
+        if (!mfa_token || !otp || !email_id) {
+            return res.status(400).json({
+                status: false,
+                message: "mfa_token or otp or email_id is  missing",
+            });
+        }
+        const api_res = await axios.put(
+            process.env.API_URL + process.env.SMS_OTP_MFA_VERIFICATIOn,
+            {
+                emailid: email_id,
+                Otp: otp, // body data
+            },
+            {
+                params: {
+                    apikey: process.env.API_KEY,
+                    secondfactorauthenticationtoken: mfa_token
+                },
+            }
+        );
+        // console.log("verifyEmailOtptoLogin response is ", api_res.data)
+        if (api_res && api_res.data.Data && api_res.data.Data.access_token) {
+            res.status(200).json({ status: true, message: "Email verified", access_token: api_res.data.Data.access_token, refresh_token: api_res.data.Data.refresh_token, mobile_number: api_res.data.Data.Profile.PhoneId });
+        } else {
+            res.status(400).json({ status: false, message: "some erorr had occured" });
+        }
+    } catch (error) {
+        if (error && error.response && error.response.data) {
+            console.log("error in verifyEmailByToken ", error.response.data);
+            res.status(500).json({ status: false, message: error.response.data.Description });
+        } else {
+            res.status(500).json({ status: false, message: "Internal Server Error" });
+        }
+
+    }
+}
 const sendOTPForMobileVerification = async (req, res) => {
     const mobile = req.query.mobile;
     if (!mobile) {
@@ -248,5 +288,6 @@ module.exports = {
     forgotPasswordByToken,
     verifyEmailByToken,
     verifyMobileByOTP,
-    sendOTPForMobileVerification
+    sendOTPForMobileVerification,
+    verifyEmailOTPtoLogin
 }

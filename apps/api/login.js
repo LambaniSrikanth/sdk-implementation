@@ -79,8 +79,9 @@ const login = async (req, res) => {
                     apikey: process.env.API_KEY,
                 }
             })
-        if (api_res && api_res.data && api_res.data.access_token) {
-            res.status(200).json({ status: true, message: "Logged In successfully", access_token: api_res.data.access_token });
+        if (api_res && api_res.data && api_res.data.SecondFactorAuthentication && api_res.data.SecondFactorAuthentication.SecondFactorAuthenticationToken) {
+            await sendEmailOTPAfterLogin(api_res.data.SecondFactorAuthentication.SecondFactorAuthenticationToken, email);
+            res.status(200).json({ status: true, message: "Logged In successfully", SecondFactorAuthentication: api_res.data.SecondFactorAuthentication.SecondFactorAuthenticationToken });
         }
     } catch (error) {
         if (error && error.response && error.response.data) {
@@ -91,8 +92,61 @@ const login = async (req, res) => {
         }
     }
 }
+const sendEmailOTPAfterLogin = async (secondfactorauthenticationtoken, email) => {
+    try {
+        const api_res = await axios.post(process.env.API_URL + process.env.SEND_EMAIL_MFA_OTP,
+            {
+                "emailid": email
+            },
+            {
+                params: {
+                    apikey: process.env.API_KEY,
+                    secondfactorauthenticationtoken: secondfactorauthenticationtoken
+                }
+            })
+        if (api_res && api_res.data && api_res.data.IsPosted) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.log("error in sendEmailOTPAfterLogin ", error);
+        return false;
+    }
+}
+const getAccessTokenByUID = async (req, res) => {
+    try {
+        const UID = req.query.UID;
+        const api_res = await axios.get(
+            process.env.API_URL + process.env.ACCESS_TOKEN_BY_UID,
+            {
+                params: {
+                    apikey: process.env.API_KEY,
+                    apisecret: process.env.API_SECRET,
+                    uid: UID
+                },
+                headers: {
+                }
+            }
+        );
+        if (api_res && api_res.data.access_token && api_res.data.refresh_token) {
+            res.status(200).json({ status: true, message: "access token fetched", access_token: api_res.data.access_token, refresh_token: api_res.data.refresh_token });
+        } else {
+            res.status(400).json({ status: false, message: "some error had occured" });
+        }
+    } catch (error) {
+        if (error && error.response && error.response.data) {
+            console.log("error in getAccessTokenByUID ", error.response.data);
+            res.status(500).json({ status: false, message: error.response.data.Description });
+        } else {
+            res.status(500).json({ status: false, message: "Internal Server Error" });
+        }
+    }
+}
 module.exports = {
     getProfileDetailsByAccessId,
     InvalidateAccessToken,
-    login
+    login,
+    getAccessTokenByUID
+
 }
