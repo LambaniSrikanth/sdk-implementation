@@ -4,6 +4,7 @@ import "./App.css";
 import { getCookie, setCookie } from "./cookieUtils";
 
 export default function VerifyOTP() {
+    console.log("Full URL web:", window.location.href);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -24,6 +25,7 @@ export default function VerifyOTP() {
     useEffect(() => {
         if (type != "otp_verification") {
             const accessToken = getCookie("access_token");
+            console.log("accessed access_token and got ", accessToken)
             if (!accessToken || !type) {
                 navigate("/");
             }

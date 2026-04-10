@@ -4,6 +4,7 @@ import "./App.css";
 import { getCookie, setCookie } from "./cookieUtils";
 
 export default function VerifyOTP() {
+    console.log("Full URL:", window.location.href);
     const navigate = useNavigate();
     const location = useLocation();
 

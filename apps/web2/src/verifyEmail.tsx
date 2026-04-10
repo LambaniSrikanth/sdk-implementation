@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "./App.css";
+import { setCookie } from "./cookieUtils";
 
 export default function VerifyEmail() {
     const location = useLocation();
@@ -39,12 +40,12 @@ export default function VerifyEmail() {
                     // console.log("API SUCCESS", data);
 
                     if (data.access_token && data.refresh_token && data.mobile_number) {
-                        localStorage.setItem("auth", JSON.stringify({
-                            access_token: data.access_token,
-                            refresh_token: data.refresh_token,
-                            user: {
-                                mobile: data.mobile_number
-                            }
+                        // 🔐 Store tokens in cookies (SSO)
+                        setCookie("access_token", data.access_token);
+                        setCookie("refresh_token", data.refresh_token);
+                        // 🧠 Store only user info in localStorage
+                        localStorage.setItem("user", JSON.stringify({
+                            mobile: data.mobile_number
                         }));
                         await fetch(
                             `${import.meta.env.VITE_BACKENDURL}/api/sendMobileVerificationOTP?mobile=${data.mobile_number}`,
