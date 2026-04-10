@@ -77,7 +77,7 @@ export default function Profile() {
         }
 
         // ✅ Clear everything AFTER API call
-        localStorage.removeItem("user");
+        localStorage.removeItem("auth");
 
         navigate("/");
     };
