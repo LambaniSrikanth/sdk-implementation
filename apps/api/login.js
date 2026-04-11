@@ -68,20 +68,25 @@ const InvalidateAccessToken = async (req, res) => {
 }
 const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { emailOrPhone, password } = req.body;
+        const loginBody = { password };
+        let type = "email";
+        if (/^\S+@\S+\.\S+$/.test(emailOrPhone)) {
+            loginBody.email = emailOrPhone;
+        } else {
+            loginBody.phone = "+91" + emailOrPhone;
+            type = "phone";
+        }
         const api_res = await axios.post(process.env.API_URL + process.env.LOGIN_API,
-            {
-                "email": email,
-                "password": password
-            },
+            loginBody,
             {
                 params: {
                     apikey: process.env.API_KEY,
                 }
             })
         if (api_res && api_res.data && api_res.data.SecondFactorAuthentication && api_res.data.SecondFactorAuthentication.SecondFactorAuthenticationToken) {
-            await sendEmailOTPAfterLogin(api_res.data.SecondFactorAuthentication.SecondFactorAuthenticationToken, email);
-            res.status(200).json({ status: true, message: "Logged In successfully", SecondFactorAuthentication: api_res.data.SecondFactorAuthentication.SecondFactorAuthenticationToken });
+            await sendOtpAfterLogin(api_res.data.SecondFactorAuthentication.SecondFactorAuthenticationToken, emailOrPhone, type);
+            res.status(200).json({ status: true, message: "Logged In successfully", SecondFactorAuthentication: api_res.data.SecondFactorAuthentication.SecondFactorAuthenticationToken, type });
         }
     } catch (error) {
         if (error && error.response && error.response.data) {
@@ -92,25 +97,49 @@ const login = async (req, res) => {
         }
     }
 }
-const sendEmailOTPAfterLogin = async (secondfactorauthenticationtoken, email) => {
+const sendOtpAfterLogin = async (secondfactorauthenticationtoken, emailOrPhone, type) => {
     try {
-        const api_res = await axios.post(process.env.API_URL + process.env.SEND_EMAIL_MFA_OTP,
-            {
-                "emailid": email
-            },
-            {
-                params: {
-                    apikey: process.env.API_KEY,
-                    secondfactorauthenticationtoken: secondfactorauthenticationtoken
-                }
-            })
-        if (api_res && api_res.data && api_res.data.IsPosted) {
-            return true;
+        let body = {
+            "emailid": emailOrPhone
+        }
+        let end_point = process.env.SEND_EMAIL_MFA_OTP
+        if (type != "phone") {
+            const api_res = await axios.post(process.env.API_URL + end_point,
+                body,
+                {
+                    params: {
+                        apikey: process.env.API_KEY,
+                        secondfactorauthenticationtoken: secondfactorauthenticationtoken
+                    }
+                })
+            if (api_res && api_res.data && api_res.data.IsPosted) {
+                return true;
+            } else {
+                return false;
+            }
         } else {
-            return false;
+            body = {
+                "phoneno2fa": "+91" + emailOrPhone
+            };
+            end_point = process.env.SEND_PHONE_MFA_OTP
+            const api_res = await axios.put(process.env.API_URL + end_point,
+                body,
+                {
+                    params: {
+                        apikey: process.env.API_KEY,
+                        secondfactorauthenticationtoken: secondfactorauthenticationtoken
+                    }
+                })
+            if (api_res.data && api_res.data.Sid) {
+                return true;
+            } else {
+                return false;
+            }
         }
     } catch (error) {
-        console.log("error in sendEmailOTPAfterLogin ", error);
+        if (error.response.data) {
+            console.log("error in sendOtpAfterLogin ", error);
+        }
         return false;
     }
 }

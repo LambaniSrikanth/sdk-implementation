@@ -17,6 +17,7 @@ function AuthPage() {
   const [view, setView] = useState<"login" | "register" | "forgot">("login");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [mobile, setMobile] = useState("");
@@ -36,6 +37,7 @@ function AuthPage() {
     setView(newView);
     setErrors({});
     setEmail("");
+    setEmailOrPhone("");
     setPassword("");
     setFullName("");
     setConfirmPassword("");
@@ -45,9 +47,18 @@ function AuthPage() {
   const validate = () => {
     let newErrors: any = {};
 
-    if (!email) newErrors.email = "Email is required";
-    else if (!/^\S+@\S+\.\S+$/.test(email))
-      newErrors.email = "Invalid email";
+    if (view === "login") {
+      if (!emailOrPhone) newErrors.emailOrPhone = "Email or phone is required";
+      else if (
+        !/^\S+@\S+\.\S+$/.test(emailOrPhone) &&
+        !/^[0-9]{10}$/.test(emailOrPhone)
+      )
+        newErrors.emailOrPhone = "Enter a valid email or 10-digit phone number";
+    } else {
+      if (!email) newErrors.email = "Email is required";
+      else if (!/^\S+@\S+\.\S+$/.test(email))
+        newErrors.email = "Invalid email";
+    }
 
     if (view !== "forgot") {
       if (!password) newErrors.password = "Password required";
@@ -112,7 +123,7 @@ function AuthPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            email,
+            emailOrPhone,
             password
           }),
         });
@@ -120,7 +131,7 @@ function AuthPage() {
         const data = await res.json();
         if (res.status === 200 && data.status === true && data.SecondFactorAuthentication) {
           // console.log("LOGIN SUCESSSS")
-          navigate(`/verify?type=otp_verification&mfa_token=${data.SecondFactorAuthentication}&email_id=${email}`);
+          navigate(`/verify?type=otp_verification&mfa_token=${data.SecondFactorAuthentication}&email_id=${emailOrPhone}&otp_type=${data.type}`);
         } else {
           // ❌ Show backend message
           alert(data.message);
@@ -165,7 +176,19 @@ function AuthPage() {
           {view === "forgot" && "Forgot Password"}
         </h2>
 
-        {view !== "forgot" && (
+        {view === "login" && (
+          <>
+            <input
+              type="text"
+              placeholder="Email / Phone"
+              value={emailOrPhone}
+              onChange={(e) => setEmailOrPhone(e.target.value)}
+            />
+            {errors.emailOrPhone && <p className="error">{errors.emailOrPhone}</p>}
+          </>
+        )}
+
+        {view === "register" && (
           <>
             <input
               type="email"

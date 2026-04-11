@@ -234,30 +234,51 @@ const verifyEmailOTPtoLogin = async (req, res) => {
         const mfa_token = req.query.mfa_token;
         const otp = req.query.otp;
         const email_id = req.query.email_id;
+        const type = req.query.type;
         if (!mfa_token || !otp || !email_id) {
             return res.status(400).json({
                 status: false,
                 message: "mfa_token or otp or email_id is  missing",
             });
         }
-        const api_res = await axios.put(
-            process.env.API_URL + process.env.SMS_OTP_MFA_VERIFICATIOn,
-            {
-                emailid: email_id,
-                Otp: otp, // body data
-            },
-            {
-                params: {
-                    apikey: process.env.API_KEY,
-                    secondfactorauthenticationtoken: mfa_token
+        if (type != "phone") {
+            const api_res = await axios.put(
+                process.env.API_URL + process.env.SMS_OTP_MFA_VERIFICATIOn,
+                {
+                    emailid: email_id,
+                    Otp: otp, // body data
                 },
+                {
+                    params: {
+                        apikey: process.env.API_KEY,
+                        secondfactorauthenticationtoken: mfa_token
+                    },
+                }
+            );
+            // console.log("verifyEmailOtptoLogin response is ", api_res.data)
+            if (api_res && api_res.data.access_token && api_res.data.refresh_token) {
+                res.status(200).json({ status: true, message: "Email MFA OTP is verified", access_token: api_res.data.access_token, refresh_token: api_res.data.refresh_token, mobile_number: api_res.data.Profile.PhoneId, email_id: email_id });
+            } else {
+                res.status(400).json({ status: false, message: "some erorr had occured" });
             }
-        );
-        // console.log("verifyEmailOtptoLogin response is ", api_res.data)
-        if (api_res && api_res.data.access_token && api_res.data.refresh_token) {
-            res.status(200).json({ status: true, message: "Email MFA OTP is verified", access_token: api_res.data.access_token, refresh_token: api_res.data.refresh_token, mobile_number: api_res.data.Profile.PhoneId, email_id: email_id });
         } else {
-            res.status(400).json({ status: false, message: "some erorr had occured" });
+            const api_res = await axios.put(
+                process.env.API_URL + process.env.PHONE_OTP_MFA_VERIFICATIOn,
+                {
+                    otp: otp, // body data
+                },
+                {
+                    params: {
+                        apikey: process.env.API_KEY,
+                        secondfactorauthenticationtoken: mfa_token
+                    },
+                }
+            );
+            if (api_res && api_res.data.access_token && api_res.data.refresh_token) {
+                res.status(200).json({ status: true, message: "Email MFA OTP is verified", access_token: api_res.data.access_token, refresh_token: api_res.data.refresh_token, mobile_number: api_res.data.Profile.PhoneId, email_id: email_id });
+            } else {
+                res.status(400).json({ status: false, message: "some erorr had occured" });
+            }
         }
     } catch (error) {
         if (error && error.response && error.response.data) {

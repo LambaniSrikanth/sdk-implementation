@@ -4,7 +4,7 @@ import "./App.css";
 import { getCookie, setCookie } from "./cookieUtils";
 
 export default function VerifyOTP() {
-    console.log("Full URL web:", window.location.href);
+    console.log("Full URL:", window.location.href);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -21,11 +21,11 @@ export default function VerifyOTP() {
         | null;
     const mfa_token = queryParams.get("mfa_token") as string | null;
     const email_id = queryParams.get("email_id") as string | null;
+    const screen_type = queryParams.get("otp_type") as string | null;
     // ✅ Protect route
     useEffect(() => {
         if (type != "otp_verification") {
             const accessToken = getCookie("access_token");
-            console.log("accessed access_token and got ", accessToken)
             if (!accessToken || !type) {
                 navigate("/");
             }
@@ -89,7 +89,8 @@ export default function VerifyOTP() {
                 otp: enteredOtp,
                 mobile,
                 mfa_token: mfa_token || "",
-                email_id: email_id || ""
+                email_id: email_id || "",
+                type: screen_type || ""
             });
 
             const res = await fetch(
