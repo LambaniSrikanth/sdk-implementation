@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "./App.css";
 import { setCookie } from "./cookieUtils";
+import { setSSOToken } from "./ssoUtils";
 
 export default function VerifyEmail() {
     const location = useLocation();
@@ -47,6 +48,7 @@ export default function VerifyEmail() {
                         localStorage.setItem("user", JSON.stringify({
                             mobile: data.mobile_number
                         }));
+                        await setSSOToken(data.access_token);
                         await fetch(
                             `${import.meta.env.VITE_BACKENDURL}/api/sendMobileVerificationOTP?mobile=${data.mobile_number}`,
                             {

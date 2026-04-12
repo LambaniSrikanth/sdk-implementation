@@ -1,7 +1,8 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import "./App.css";
-import { getCookie } from "./cookieUtils";
+import { getCookie, setCookie } from "./cookieUtils";
+import { checkSSOSession } from "./ssoUtils";
 import LoginSuccess from "./LoginSuccess";
 import RegisterSuccess from "./RegisterSuccess";
 import PasswordChangedSuccess from "./PasswordChangedSuccess";
@@ -30,7 +31,15 @@ function AuthPage() {
     const token = getCookie("access_token");
     if (token) {
       navigate("/profile");
+      return;
     }
+    // Check for an active SSO session from another connected app
+    checkSSOSession().then((ssoToken) => {
+      if (ssoToken) {
+        setCookie("access_token", ssoToken);
+        navigate("/profile");
+      }
+    });
   }, []);
 
   const changeView = (newView: "login" | "register" | "forgot") => {

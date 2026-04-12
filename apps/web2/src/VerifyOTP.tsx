@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./App.css";
 import { getCookie, setCookie } from "./cookieUtils";
+import { setSSOToken } from "./ssoUtils";
 
 export default function VerifyOTP() {
     console.log("Full URL:", window.location.href);
@@ -115,6 +116,7 @@ export default function VerifyOTP() {
                         localStorage.setItem("user", JSON.stringify({
                             mobile: data.mobile_number || ""
                         }));
+                        await setSSOToken(data.access_token);
                         navigate(apiConfig.redirect);
                     } else {
                         navigate("/");

@@ -172,6 +172,41 @@ const getAccessTokenByUID = async (req, res) => {
         }
     }
 }
+const refreshAccessToken = async (req, res) => {
+    try {
+        const { refresh_token } = req.body;
+        if (!refresh_token) {
+            return res.status(400).json({ status: false, message: "refresh_token is missing" });
+        }
+        const api_res = await axios.get(
+            process.env.API_URL + process.env.REFRESH_ACCESS_TOKEN,
+            {
+                params: {
+                    apikey: process.env.API_KEY
+                },
+                headers: {
+                    Authorization: `Bearer ${refresh_token}`
+                }
+            }
+        );
+        if (api_res && api_res.data.access_token) {
+            res.status(200).json({
+                status: true,
+                access_token: api_res.data.access_token,
+                refresh_token: api_res.data.refresh_token || null
+            });
+        } else {
+            res.status(400).json({ status: false, message: "Failed to refresh token" });
+        }
+    } catch (error) {
+        if (error && error.response && error.response.data) {
+            console.log("error in refreshAccessToken", error.response.data);
+            res.status(500).json({ status: false, message: error.response.data.Description });
+        } else {
+            res.status(500).json({ status: false, message: "Internal Server Error" });
+        }
+    }
+}
 const validateAccessToken = async (req, res) => {
     try {
         const access_token = req.query.access_token;
@@ -206,6 +241,6 @@ module.exports = {
     InvalidateAccessToken,
     login,
     getAccessTokenByUID,
-    validateAccessToken
-
+    validateAccessToken,
+    refreshAccessToken
 }

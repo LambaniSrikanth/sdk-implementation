@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "./App.css";
 import { getCookie, setCookie, deleteCookie } from "./cookieUtils";
+import { clearSSOSession } from "./ssoUtils";
 
 export default function Profile() {
     const navigate = useNavigate();
@@ -105,6 +106,8 @@ export default function Profile() {
         } catch (err) {
             console.error("Logout API failed:", err);
         }
+
+        await clearSSOSession();
 
         // ✅ Clear tokens from cookies and user info from localStorage
         deleteCookie("access_token");
