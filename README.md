@@ -1,4 +1,4 @@
-# I Built a Full Authentication System with LoginRadius — Here's Everything I Learned
+# I Built a Full Authentication System with LoginRadius JS SDK — Here's Everything I Learned
 
 So I decided to stop copy-pasting auth boilerplate from project to project and actually sit down and build it properly. I wanted email verification, two-factor authentication, password reset, profile management, and SSO — the kind of thing most apps need but nobody wants to build from scratch twice.
 
