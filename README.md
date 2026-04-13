@@ -1,6 +1,6 @@
 # I Built a Full Authentication System with LoginRadius JS SDK — Here's Everything I Learned
 
-So I decided to stop copy-pasting auth boilerplate from project to project and actually sit down and build it properly. I wanted email verification, two-factor authentication, password reset, profile management, and SSO — the kind of thing most apps need but nobody wants to build from scratch twice.
+So I decided to stop copy-pasting auth boilerplate from project to project and actually sit down and build it properly. I wanted email verification, two-factor authentication, password reset and SSO — the kind of thing most apps need but nobody wants to build from scratch twice.
 
 I used **LoginRadius** as the identity backbone, wrote a **Node.js/Express** API to sit between the frontend and LoginRadius, and built **two React apps** that share a single authenticated session through SSO. This post walks through what I built, how every piece fits together, and how you can run the whole thing locally.
 
@@ -604,14 +604,12 @@ One command installs all dependencies across all three apps.
 
 ### Step 2 — Set up your LoginRadius app
 
-1. Log into the [LoginRadius dashboard](https://dashboard.loginradius.com/)
-2. Go to **Configuration → API Credentials** — copy your `API Key`, `API Secret`, and note your `App Name` (this is your site name)
+1. Log into the [LoginRadius Admin Console](https://console.loginradius.com/)
+2. Go to **Application → Tenant Settings** — copy your `API Key`, `API Secret`, and note your `App Name` (this is your site name)
 3. Go to **Security → Multi-Factor Authentication** — enable it, turn on Email OTP and SMS OTP
-4. Go to **Security → Single Sign On** — enable SSO
-5. Go to **Deployment → Apps** — add whitelist entries for:
-   - `http://localhost:5173`
-   - `http://localhost:5174`
-6. Go to **Configuration → Whitelist** (CORS) — add both localhost origins there too
+5. Go to **Application → Tenant Settings ->Configured Domains** — add whitelist entries for:
+   - `http://localhost`
+6. Go to **Application → Cross-Origin Authentication** (CORS) — add both localhost origins there too
 
 ---
 
@@ -717,7 +715,3 @@ Check that your LoginRadius account has an SMS provider configured (Twilio is th
 LoginRadius won't allow login if the email isn't verified. Go through the full registration → verify email flow first.
 
 ---
-
-## License
-
-MIT
